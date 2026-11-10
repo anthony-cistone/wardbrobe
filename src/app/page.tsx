@@ -1,69 +1,75 @@
-import Image from "next/image";
+import Link from "next/link";
+import { APP_NAME, PLANS } from "@/lib/plans";
+import { Footer } from "@/app/components/footer";
 
-export default function Home() {
+const STEPS = [
+  { t: "Snap a photo", d: "Hang it up, take a picture. That's the whole data entry." },
+  { t: "AI tags it", d: "Category, type, color and details are filled in for you, and you get a code like LS-14." },
+  { t: "Wear what you own", d: "Build outfits, get suggestions from your own closet, and decide what to keep, tailor or donate." },
+];
+
+export default function Landing() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <header className="wrap flex items-center justify-between py-5">
+        <span className="font-display text-xl font-bold">{APP_NAME}</span>
+        <nav className="flex gap-2">
+          <Link className="btn" href="/login">Sign in</Link>
+          <Link className="btn pri" href="/login?mode=signup">Start free</Link>
+        </nav>
+      </header>
+
+      <main className="wrap">
+        <section className="py-14 md:py-20 max-w-3xl">
+          <h1 className="text-[clamp(34px,6vw,60px)] font-bold leading-[1.02]">Your whole closet, on one screen.</h1>
+          <p className="mt-5 text-lg muted max-w-xl">
+            Photograph your clothes and {APP_NAME} catalogs them for you. Build outfits, get AI suggestions from what
+            you already own, and finally clear out what you never wear.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link className="btn pri" href="/login?mode=signup">Create a free account</Link>
+            <a className="btn" href="#pricing">See pricing</a>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-3 pb-16">
+          {STEPS.map((s, i) => (
+            <div key={s.t} className="card p-5">
+              <div className="code">0{i + 1}</div>
+              <h3 className="text-lg font-bold mt-1">{s.t}</h3>
+              <p className="muted mt-1">{s.d}</p>
+            </div>
+          ))}
+        </section>
+
+        <section id="pricing" className="pb-20">
+          <h2 className="text-3xl font-bold mb-6">Pricing</h2>
+          <div className="grid gap-4 md:grid-cols-2 max-w-3xl">
+            {(["free", "pro"] as const).map((k) => {
+              const p = PLANS[k];
+              return (
+                <div key={k} className={`card p-6 flex flex-col ${k === "pro" ? "border-accent border-2" : ""}`}>
+                  <h3 className="text-xl font-bold">{p.name}</h3>
+                  <p className="mt-1">
+                    <span className="font-display text-4xl font-bold">{p.price}</span>
+                    <span className="muted"> / month</span>
+                  </p>
+                  <ul className="mt-4 space-y-2 flex-1">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex gap-2"><span aria-hidden className="text-accent">✓</span>{f}</li>
+                    ))}
+                  </ul>
+                  <Link className={`btn mt-6 justify-center ${k === "pro" ? "pri" : ""}`} href="/login?mode=signup">
+                    {k === "pro" ? "Start free, upgrade anytime" : "Start free"}
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+          <p className="muted mt-4 text-[13px]">Cancel anytime from Settings. Billing is handled securely by Stripe.</p>
+        </section>
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }

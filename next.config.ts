@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
+// Every app page depends on the signed-in user, so pages render per request.
+// Cache Components is left off to keep the auth flow simple.
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  cacheComponents: false,
   turbopack: {
     rules: {
       "*.css": {
@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co" }],
   },
 };
 
