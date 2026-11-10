@@ -9,21 +9,35 @@ links for pieces they're missing.
 
 ## What's in it
 
+The app has three sections.
+
+**Closet:** everything you own.
 | Page | What it does |
 |---|---|
-| `/` | Landing page and pricing |
-| `/login` | Sign up / sign in (email + password, email confirmation, password reset) |
-| `/closet` | The lookbook: category and status filters, search, piece details, keep / tailor / donate, favorites, notes, outfit tray |
-| `/add` | Upload photos. Pro: AI fills in category, type, color, details and flags duplicates. Codes like `LS-53` are assigned automatically |
-| `/outfits` | Saved outfits, plus AI suggestions from the user's closet ("desk day", "dinner out"…), each with an optional "Shop this" for a missing piece |
-| `/review` | AI closet review: summary, piece-by-piece keep/tailor/donate advice, and "What's missing" with shop links |
-| `/settings` | Style notes (the AI reads them), plan, AI usage this month, upgrade / manage billing |
-| `/admin` | Owner-only: accounts, Pro subscribers, estimated AI cost, affiliate clicks by retailer and by suggestion |
-| `/go/<id>?r=amazon` | Affiliate redirect: logs the click, adds your affiliate tag, sends the shopper to the retailer |
+| `/closet` | All pieces: category and status filters, search, piece details, keep / tailor / donate, favorites, notes, outfit tray |
+| `/closet/add` | Upload photos. Pro: AI fills in category, type, color and details and flags duplicates. Codes like `LS-53` are assigned automatically |
+| `/closet/review` | AI closet review: summary, piece-by-piece advice, and "What's missing" with shop links |
+
+**My Style:** what you want to look like.
+| Page | What it does |
+|---|---|
+| `/style` | Style board: drop in photos of looks you like. Pro: the AI names each look and lists its key pieces; "Get this look" opens the stylist |
+| `/style/me` | Up to 6 photos of yourself; the AI writes editable styling notes (colors and fits that suit you). Plus your style in your own words |
+| `/style/stylist` | Chat with the AI stylist. It knows your closet, board and notes, shows the pieces it mentions, accepts a photo, and links anything to buy |
+
+**Outfits:** what to wear.
+| Page | What it does |
+|---|---|
+| `/outfits` | Request outfits for any occasion. Suggestions come back with Save / Dismiss; every garment you're missing shows as a "+ to buy" tile with shop links |
+
+Other pages: `/` landing and pricing, `/login`, `/settings` (plan, AI usage, billing), `/admin` (owner-only numbers), `/disclosure`, and `/go/<id>?r=amazon` (the affiliate redirect).
+
+**Photos of the user:** stored in the private bucket, sent to the Claude API only for that user's styling notes, deletable anytime.
+The prompt limits the AI to color and fit guidance (no rating of looks, no guessing age, weight, ethnicity or health).
 
 ### How affiliate revenue works
 
-1. The AI suggests pieces in two places: closet-review gaps and an outfit's "missing piece".
+1. The AI suggests pieces to buy in three places: an outfit's missing garments, the stylist chat, and closet-review gaps.
 2. Each suggestion is stored in `shop_suggestions` with a search query (e.g. "mens navy slim chinos").
 3. "Shop this" links point to `/go/<suggestion id>?r=<retailer>`. That route logs a row in `affiliate_clicks`,
    then redirects to the retailer's search results with your tracking:
@@ -39,8 +53,8 @@ Add or change retailers in `src/lib/retailers.ts`. Links are marked `rel="sponso
 
 ### 1. Supabase (accounts, database, photos)
 1. Create a project at supabase.com.
-2. **SQL Editor** → paste and run `supabase/migrations/0001_init.sql`. This creates the tables, security rules,
-   the free-plan limit and the private `closet` photo bucket.
+2. **SQL Editor** → run `supabase/migrations/0001_init.sql`, then `0002_my_style.sql`. This creates the tables,
+   security rules, the free-plan limit and the private `closet` photo bucket.
 3. **Authentication → URL Configuration:** set Site URL to your domain and add `https://YOUR-DOMAIN/auth/callback`
    (and `http://localhost:3000/auth/callback`) to Redirect URLs.
 4. **Project Settings → API:** copy the URL, anon key and service-role key into your env vars.
@@ -58,7 +72,8 @@ For local testing: `stripe listen --forward-to localhost:3000/api/stripe/webhook
 
 ### 3. Claude API
 Create a key at console.anthropic.com and set `ANTHROPIC_API_KEY`. Each Pro user's AI use is capped per month
-(500 photo tags, 100 outfit suggestion runs, 20 reviews) in `src/lib/plans.ts`. Estimated spend shows on `/admin`.
+(500 photo tags, 100 outfit requests, 300 stylist messages, 150 style-photo reads, 20 reviews) in `src/lib/plans.ts`.
+Estimated spend shows on `/admin`.
 
 ### 4. Affiliate programs (optional, apply any time)
 - **Amazon Associates** (affiliate-program.amazon.com) → `AMAZON_ASSOCIATE_TAG`.
@@ -95,10 +110,10 @@ saved outfits from `scripts/lookbook-export/outfits/`. The export folder holds p
 supabase/migrations/0001_init.sql   tables, row-level security, free limit, storage bucket
 src/proxy.ts                        refreshes the sign-in session, guards app pages
 src/lib/plans.ts                    plan names, prices, limits, AI caps
-src/lib/ai.ts                       Claude calls: tagPhoto, suggestOutfits, reviewCloset
+src/lib/ai.ts                       Claude calls: tagPhoto, suggestOutfits, reviewCloset, analyzeInspo, analyzeSelf, stylistChat
 src/lib/affiliate.ts, retailers.ts  affiliate URL building and retailer list
 src/lib/data.ts                     session, data loading, AI quota checks
-src/app/(app)/...                   signed-in pages
+src/app/(app)/closet, style, outfits  the three sections (signed in)
 src/app/api/...                     JSON routes, Stripe checkout / portal / webhook
 src/app/go/[id]/route.ts            affiliate click redirect
 scripts/import-lookbook.mjs         one-time import of the original lookbook

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES, type CategoryCode } from "@/lib/categories";
+import { uploadPhoto } from "@/lib/upload";
 
 type Draft = {
   key: string;
@@ -20,24 +21,12 @@ type Draft = {
   code?: string;
 };
 
-/** Shrink to 1280px on the long edge as JPEG: smaller uploads, cheaper AI calls, same detail. */
-async function resize(file: File): Promise<Blob> {
-  const bmp = await createImageBitmap(file);
-  const scale = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bmp.width * scale);
-  canvas.height = Math.round(bmp.height * scale);
-  canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-  return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not read photo"))), "image/jpeg", 0.82));
-}
-
 export function AddPieces({ pro, userId }: { pro: boolean; userId: string }) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const update = (key: string, p: Partial<Draft>) => setDrafts((ds) => ds.map((d) => (d.key === key ? { ...d, ...p } : d)));
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
-    const supabase = createClient();
     for (const file of Array.from(files).slice(0, 20)) {
       const key = crypto.randomUUID();
       const draft: Draft = {
@@ -46,10 +35,7 @@ export function AddPieces({ pro, userId }: { pro: boolean; userId: string }) {
       };
       setDrafts((ds) => [draft, ...ds]);
       try {
-        const blob = await resize(file);
-        const path = `${userId}/${key}.jpg`;
-        const { error } = await supabase.storage.from("closet").upload(path, blob, { contentType: "image/jpeg" });
-        if (error) throw new Error(error.message);
+        const path = await uploadPhoto(file, userId);
         update(key, { photo_path: path, state: pro ? "tagging" : "ready" });
         if (pro) {
           const res = await fetch("/api/ai/tag", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ photo_path: path }) });
@@ -88,9 +74,8 @@ export function AddPieces({ pro, userId }: { pro: boolean; userId: string }) {
   const savedCount = drafts.filter((d) => d.state === "saved").length;
 
   return (
-    <main className="wrap py-6 max-w-4xl">
-      <h1 className="text-[clamp(26px,4vw,38px)] font-bold">Add pieces</h1>
-      <p className="muted mt-1">
+    <main className="wrap py-5 max-w-4xl">
+      <p className="muted">
         Hang each piece against a plain wall and take one photo per item.{" "}
         {pro ? "The AI fills in the details. Check them, then save." : <>Fill in the details yourself, or <Link className="underline" href="/settings">upgrade to Pro</Link> to have AI tag every photo.</>}
       </p>

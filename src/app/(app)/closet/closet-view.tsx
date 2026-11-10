@@ -98,22 +98,22 @@ export function ClosetView({ initialItems, limit }: { initialItems: Item[]; limi
 
   if (!items.length) {
     return (
-      <main className="wrap py-16 max-w-xl">
-        <h1 className="text-3xl font-bold">Your closet is empty</h1>
+      <main className="wrap py-10 max-w-xl">
+        <h2 className="text-2xl font-bold">Your closet is empty</h2>
         <p className="muted mt-2">Photograph a few pieces on a hanger to get started. Each one gets a code like SS-01 or PNT-03.</p>
-        <Link className="btn pri mt-6" href="/add">Add your first pieces</Link>
+        <Link className="btn pri mt-6" href="/closet/add">Add your first pieces</Link>
       </main>
     );
   }
 
   return (
     <main className="wrap pb-40">
-      <header className="flex flex-wrap items-baseline justify-between gap-2 pt-6 pb-2">
-        <h1 className="text-[clamp(26px,4vw,38px)] font-bold">Closet</h1>
+      <header className="flex flex-wrap items-center justify-between gap-2 pt-4 pb-1">
         <p className="muted tabular-nums">
           {items.length}
           {limit ? ` of ${limit}` : ""} pieces · {items.length - counts.keep - counts.tailor - counts.donate} unreviewed · {counts.keep} keep · {counts.tailor} tailor · {counts.donate} donate
         </p>
+        <Link className="btn pri" href="/closet/add">+ Add &amp; tag pieces</Link>
       </header>
 
       <div className="sticky top-0 z-10 bg-bg py-3 flex flex-col gap-2 border-b border-line">

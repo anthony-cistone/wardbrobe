@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getSession, jsonError, HttpError } from "@/lib/data";
 
-const Patch = z.object({ name: z.string().trim().min(1).max(80), seen: z.boolean() }).partial();
+const Patch = z.object({ name: z.string().trim().min(1).max(80), seen: z.boolean(), saved: z.boolean() }).partial();
 
 export async function PATCH(req: Request, ctx: RouteContext<"/api/outfits/[id]">) {
   try {

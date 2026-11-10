@@ -38,6 +38,7 @@ export type Outfit = {
   source: "user" | "ai";
   why: string | null;
   seen: boolean;
+  saved: boolean;
   created_at: string;
 };
 

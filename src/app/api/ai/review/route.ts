@@ -1,4 +1,4 @@
-import { requireAi, logAi, jsonError, HttpError, getItems } from "@/lib/data";
+import { requireAi, logAi, jsonError, HttpError, getItems, getStyleContext } from "@/lib/data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { reviewCloset } from "@/lib/ai";
 
@@ -8,7 +8,7 @@ export async function POST() {
     const items = await getItems();
     if (items.length < 5) throw new HttpError(400, "Add at least 5 pieces for a useful review.");
 
-    const { data, usage } = await reviewCloset(items, s.profile.style_notes);
+    const { data, usage } = await reviewCloset(items, await getStyleContext());
     await logAi(s.user.id, "review", usage);
 
     const codes = new Set(items.map((i) => i.code.toUpperCase()));

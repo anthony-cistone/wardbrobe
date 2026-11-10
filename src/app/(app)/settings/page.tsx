@@ -1,10 +1,16 @@
+import Link from "next/link";
 import { aiUsageThisMonth, requireSession } from "@/lib/data";
 import { PLANS } from "@/lib/plans";
-import { StyleNotes } from "./style-notes";
 
-export const metadata = { title: "Settings" };
+export const metadata = { title: "Account" };
 
-const AI_LABELS = { tag: "Photo tags", outfits: "Outfit suggestions", review: "Closet reviews" } as const;
+const AI_LABELS = {
+  tag: "Photo tags",
+  outfits: "Outfit requests",
+  chat: "Stylist messages",
+  style: "Style photo reads",
+  review: "Closet reviews",
+} as const;
 
 export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
   const { profile, pro, user } = await requireSession();
@@ -13,19 +19,14 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
 
   return (
     <main className="wrap py-6 max-w-2xl flex flex-col gap-5">
-      <h1 className="text-[clamp(26px,4vw,38px)] font-bold">Settings</h1>
+      <h1 className="text-[clamp(26px,4vw,38px)] font-bold">Account</h1>
+      <p className="muted">
+        Signed in as {user.email}. Your photos and style notes are in{" "}
+        <Link className="underline" href="/style/me">My Style → About me</Link>.
+      </p>
       {upgraded && !pro && (
         <p className="notice">Payment received. Pro turns on within a minute; refresh this page if it hasn&apos;t yet.</p>
       )}
-
-      <section className="card p-4">
-        <h2 className="font-bold text-lg">Style notes</h2>
-        <p className="muted text-[13px] mb-2">
-          The AI reads these for outfit suggestions and reviews. For example: business casual, mostly desk days, sleeves
-          often run short on me, avoid loud colors.
-        </p>
-        <StyleNotes initial={profile.style_notes} />
-      </section>
 
       <section className="card p-4 flex flex-col gap-3">
         <h2 className="font-bold text-lg">Plan</h2>

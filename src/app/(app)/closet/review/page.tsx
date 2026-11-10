@@ -4,7 +4,7 @@ import { Photo } from "@/app/components/photo";
 import { ShopLinks } from "@/app/components/shop-links";
 import { RunReview } from "./run-review";
 
-export const metadata = { title: "Closet review" };
+export const metadata = { title: "Review · Closet" };
 
 type Advice = { code: string; verdict: "keep" | "tailor" | "donate"; reason: string };
 
@@ -19,9 +19,8 @@ export default async function ReviewPage() {
   const advice = ((review?.advice ?? []) as Advice[]).filter((a) => byCode.has(a.code.toUpperCase()));
 
   return (
-    <main className="wrap py-6 max-w-4xl">
-      <h1 className="text-[clamp(26px,4vw,38px)] font-bold">Closet review</h1>
-      <p className="muted mt-1">An honest look at what you own: what to keep, what to tailor, what to let go, and what&apos;s missing.</p>
+    <main className="wrap py-5 max-w-4xl">
+      <p className="muted">An honest look at what you own: what to keep, what to tailor, what to let go, and what&apos;s missing.</p>
 
       {pro ? <RunReview hasReview={!!review} /> : (
         <p className="notice mt-4">The AI closet review is part of Pro. <Link className="underline" href="/settings">Upgrade</Link></p>

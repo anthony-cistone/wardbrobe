@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED = ["/closet", "/add", "/outfits", "/review", "/settings"];
+const PROTECTED = ["/closet", "/style", "/outfits", "/settings"];
 
 /** Refreshes the Supabase session cookie on every request and guards app pages. */
 export async function proxy(request: NextRequest) {

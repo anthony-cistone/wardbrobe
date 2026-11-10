@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <NavLinks />
           <div className="ml-auto flex items-center gap-3">
             {pro ? <span className="tag">Pro</span> : <Link href="/settings" className="btn pri">Upgrade</Link>}
-            <span className="muted text-[13px] hidden sm:inline">{profile.email}</span>
+            <Link href="/settings" className="muted text-[13px] underline hidden sm:inline" title={profile.email ?? undefined}>Account</Link>
             <form action="/auth/signout" method="post"><button className="btn">Sign out</button></form>
           </div>
         </div>

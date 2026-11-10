@@ -10,6 +10,8 @@ export type Profile = {
   id: string;
   email: string | null;
   style_notes: string;
+  appearance_notes: string;
+  style_summary: string;
   plan: "free" | "pro";
   subscription_status: string | null;
   stripe_customer_id: string | null;
@@ -25,7 +27,7 @@ export const getSession = cache(async () => {
   if (!user) return null;
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id,email,style_notes,plan,subscription_status,stripe_customer_id,current_period_end")
+    .select("id,email,style_notes,appearance_notes,style_summary,plan,subscription_status,stripe_customer_id,current_period_end")
     .eq("id", user.id)
     .single<Profile>();
   if (!profile) return null;
@@ -74,7 +76,7 @@ function monthStart() {
 export async function aiUsageThisMonth(userId: string) {
   const admin = createAdminClient();
   const { data } = await admin.from("ai_usage").select("kind").eq("user_id", userId).gte("created_at", monthStart());
-  const counts: Record<AiKind, number> = { tag: 0, outfits: 0, review: 0 };
+  const counts: Record<AiKind, number> = { tag: 0, outfits: 0, review: 0, chat: 0, style: 0 };
   for (const r of data ?? []) counts[r.kind as AiKind]++;
   return counts;
 }
@@ -119,4 +121,64 @@ export function jsonError(e: unknown) {
   }
   console.error(e);
   return Response.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+}
+
+export type StyleImage = {
+  id: string;
+  kind: "inspo" | "self";
+  photo_path: string;
+  caption: string;
+  ai_notes: { look: string; description: string; key_pieces: string[]; colors: string[] } | null;
+  created_at: string;
+  photo_url?: string | null;
+};
+
+export async function getStyleImages(): Promise<StyleImage[]> {
+  const { supabase } = await requireSession();
+  const { data, error } = await supabase
+    .from("style_images")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .returns<StyleImage[]>();
+  if (error) throw error;
+  const imgs = data ?? [];
+  if (imgs.length) {
+    const { data: signed } = await supabase.storage.from("closet").createSignedUrls(imgs.map((i) => i.photo_path), PHOTO_TTL);
+    const byPath = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
+    for (const i of imgs) i.photo_url = byPath.get(i.photo_path) ?? null;
+  }
+  return imgs;
+}
+
+type Supa = Awaited<ReturnType<typeof createClient>>;
+
+/** Download a photo the user owns and prepare it for the AI. */
+export async function loadImage(supabase: Supa, userId: string, path: string) {
+  if (!path.startsWith(`${userId}/`)) throw new HttpError(400, "Invalid photo.");
+  const { data: file, error } = await supabase.storage.from("closet").download(path);
+  if (error || !file) throw new HttpError(404, "Photo not found. Try uploading again.");
+  if (file.size > 5_000_000) throw new HttpError(413, "Photo is too large.");
+  const mediaType = (["image/jpeg", "image/png", "image/webp"].includes(file.type) ? file.type : "image/jpeg") as
+    | "image/jpeg"
+    | "image/png"
+    | "image/webp";
+  return { base64: Buffer.from(await file.arrayBuffer()).toString("base64"), mediaType };
+}
+
+/** The user's style notes, appearance notes and board, for AI prompts. */
+export async function getStyleContext() {
+  const { supabase, profile } = await requireSession();
+  const { data } = await supabase
+    .from("style_images")
+    .select("caption,ai_notes")
+    .eq("kind", "inspo")
+    .not("ai_notes", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  return {
+    styleNotes: profile.style_notes,
+    appearanceNotes: profile.appearance_notes,
+    styleSummary: profile.style_summary,
+    board: (data ?? []).map((r) => ({ ...(r.ai_notes as { look: string; description: string; key_pieces: string[] }), caption: r.caption })),
+  };
 }

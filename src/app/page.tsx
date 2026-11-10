@@ -3,9 +3,9 @@ import { APP_NAME, PLANS } from "@/lib/plans";
 import { Footer } from "@/app/components/footer";
 
 const STEPS = [
-  { t: "Snap a photo", d: "Hang it up, take a picture. That's the whole data entry." },
-  { t: "AI tags it", d: "Category, type, color and details are filled in for you, and you get a code like LS-14." },
-  { t: "Wear what you own", d: "Build outfits, get suggestions from your own closet, and decide what to keep, tailor or donate." },
+  { t: "Closet", d: "Photograph your clothes. AI tags each piece with type, color and details, and you sort what to keep, tailor or donate." },
+  { t: "My Style", d: "Pin looks you love, add a few photos of yourself, and ask your AI stylist how to get those looks from what you own." },
+  { t: "Outfits", d: "Ask for outfits for any occasion and save the ones you like. Missing a piece? Every gap links to where to buy it." },
 ];
 
 export default function Landing() {
@@ -23,8 +23,8 @@ export default function Landing() {
         <section className="py-14 md:py-20 max-w-3xl">
           <h1 className="text-[clamp(34px,6vw,60px)] font-bold leading-[1.02]">Your whole closet, on one screen.</h1>
           <p className="mt-5 text-lg muted max-w-xl">
-            Photograph your clothes and {APP_NAME} catalogs them for you. Build outfits, get AI suggestions from what
-            you already own, and finally clear out what you never wear.
+            Catalog your closet, build a board of the styles you love, and get outfits that suit you, from clothes you
+            already own. When something&apos;s missing, we&apos;ll show you exactly what to buy.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link className="btn pri" href="/login?mode=signup">Create a free account</Link>
